@@ -7,26 +7,26 @@ A production-ready, hardened Docker environment for running [T3 Code](https://gi
 ## 🏛 Architecture
 
 ```mermaid
-graph TD
-    subgraph Client ["Client Devices (Laptop / Mobile)"]
-        Desk["T3 Code Desktop App\n(SSH Environment)"]
-        WebT3["app.t3.codes\n(T3 Connect / Browser)"]
-        WebOC["Web Browser\n(OpenCode Web UI)"]
+flowchart TD
+    subgraph Client ["Client Devices: Laptop / Mobile"]
+        Desk["T3 Code Desktop App<br/>SSH Environment"]
+        WebT3["app.t3.codes<br/>T3 Connect / Browser"]
+        WebOC["Web Browser<br/>OpenCode Web UI"]
     end
 
     subgraph Host ["Server / Docker Host"]
-        subgraph Container ["Hardened Container (t3code-server)"]
-            SSHD["OpenSSH Server\n(Port 2222 -> 22)"]
-            T3["T3 Code Server\n(Port 3773)"]
-            OC["OpenCode Web Server\n(Port 4096)"]
-            Agents["Coding Agents\n(OpenCode, Claude Code, etc.)"]
-            WS["Persistent Workspace\n(/workspace)"]
+        subgraph Container ["Hardened Container: t3code-server"]
+            SSHD["OpenSSH Server<br/>Port 2222 to 22"]
+            T3["T3 Code Server<br/>Port 3773"]
+            OC["OpenCode Web Server<br/>Port 4096"]
+            Agents["Coding Agents<br/>OpenCode, Claude Code, etc."]
+            WS["Persistent Workspace<br/>/workspace"]
         end
     end
 
-    Desk -->|SSH tunnel (coder@ip:2222)| SSHD
-    WebT3 -->|T3 Connect / Pairing| T3
-    WebOC -->|HTTP (auth protected)| OC
+    Desk -->|"SSH tunnel: coder@ip:2222"| SSHD
+    WebT3 -->|"T3 Connect / Pairing"| T3
+    WebOC -->|"HTTP: auth protected"| OC
     SSHD --> WS
     T3 --> Agents
     OC --> Agents
