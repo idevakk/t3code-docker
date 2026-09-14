@@ -17,8 +17,13 @@ echo ""
 echo "=== Services successfully started! ==="
 echo "SSH Server:      port ${SSH_PORT:-2222} (user: coder)"
 echo "T3 Code Server:  http://localhost:${T3_PORT:-3773}"
-echo "OpenCode Web UI: http://localhost:${OPENCODE_PORT:-4096}"
+if [ "${ENABLE_OPENCODE_WEB}" = "true" ]; then
+    echo "OpenCode Web UI: http://localhost:${OPENCODE_PORT:-4096} (Active)"
+else
+    echo "OpenCode Web UI: OFF by default. (Run ./opencode-start.sh to launch)"
+fi
 echo ""
 echo "To generate a T3 Code pairing URL/QR code, run:  ./pair-t3.sh"
 echo "To link with https://app.t3.codes/, run:         ./connect-t3.sh"
+echo "To launch OpenCode Web on demand, run:           ./opencode-start.sh"
 echo "To check status & resources, run:                ./status.sh"

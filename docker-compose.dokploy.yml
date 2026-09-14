@@ -72,6 +72,7 @@ services:
       - T3CODE_PORT=3773
       - OPENCODE_HOSTNAME=0.0.0.0
       - OPENCODE_PORT=4096
+      - ENABLE_OPENCODE_WEB=${ENABLE_OPENCODE_WEB:-false}
       - GIT_USER_NAME=${GIT_USER_NAME:-Coder Agent}
       - GIT_USER_EMAIL=${GIT_USER_EMAIL:-coder@t3code.local}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}

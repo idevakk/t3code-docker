@@ -102,7 +102,16 @@ export OPENCODE_PORT="${OPENCODE_PORT:-4096}"
 [ -n "$GEMINI_API_KEY" ] && export GEMINI_API_KEY="$GEMINI_API_KEY"
 # END T3_DOCKER_ENV
 EOF
-chown coder:coder "$BASHRC"
+# 10. OpenCode Web Auto-Start Control
+SUPERVISOR_CONF="/etc/supervisor/conf.d/supervisord.conf"
+if [ "$ENABLE_OPENCODE_WEB" = "true" ] || [ "$ENABLE_OPENCODE_WEB" = "1" ] || [ "$ENABLE_OPENCODE_WEB" = "yes" ]; then
+    echo "[OpenCode] ENABLE_OPENCODE_WEB=true: Enabling auto-start for OpenCode Web server."
+    sed -i '/\[program:opencode\]/,/\[/ s/autostart=false/autostart=true/' "$SUPERVISOR_CONF"
+else
+    echo "[OpenCode] OpenCode Web is OFF by default (ENABLE_OPENCODE_WEB=false)."
+    echo "[OpenCode] To launch on demand: run './opencode-start.sh' or 'supervisorctl start opencode'."
+    sed -i '/\[program:opencode\]/,/\[/ s/autostart=true/autostart=false/' "$SUPERVISOR_CONF"
+fi
 
 echo "=== Container Initialization Complete. Launching Services ==="
 exec "$@"

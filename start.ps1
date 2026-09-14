@@ -14,7 +14,8 @@ docker compose up -d --build
 Write-Host "`n=== Services successfully started! ===" -ForegroundColor Green
 Write-Host "SSH Server:      port 2222 (user: coder)"
 Write-Host "T3 Code Server:  http://localhost:3773"
-Write-Host "OpenCode Web UI: http://localhost:4096"
+Write-Host "OpenCode Web UI: OFF by default (port 4096)" -ForegroundColor Cyan
 Write-Host "`nTo generate a T3 Code pairing URL/QR code, run:  .\pair-t3.ps1" -ForegroundColor Yellow
 Write-Host "To link with https://app.t3.codes/, run:         .\connect-t3.ps1" -ForegroundColor Yellow
+Write-Host "To launch OpenCode Web on demand, run:           .\opencode-start.ps1" -ForegroundColor Yellow
 Write-Host "To check status & resources, run:                .\status.ps1" -ForegroundColor Yellow

@@ -132,10 +132,30 @@ If your device can directly reach port `3773`:
 
 ---
 
-### Option D: OpenCode Web UI (Browser Access)
+### Option D: OpenCode Web UI (On-Demand / Browser Access)
 
-OpenCode includes a standalone web interface:
+By default, **OpenCode Web is turned OFF** to save memory, reduce idle CPU usage, and keep port 4096 closed until needed.
 
+#### Launching OpenCode Web On-Demand:
+You can start or stop OpenCode Web at any time without restarting the container:
+
+```bash
+# Start OpenCode Web:
+./opencode-start.sh       # Linux / macOS
+.\opencode-start.ps1      # Windows PowerShell
+
+# Stop OpenCode Web:
+./opencode-stop.sh        # Linux / macOS
+.\opencode-stop.ps1       # Windows PowerShell
+```
+
+#### Running by Default on Boot:
+If you prefer OpenCode Web to always auto-start when the container boots, set in your `.env` (or Dokploy Environment tab):
+```bash
+ENABLE_OPENCODE_WEB=true
+```
+
+#### Accessing the Web UI:
 1. Open your browser and navigate to:
    ```
    http://<your-server-ip>:4096
@@ -240,6 +260,7 @@ This creates a self-contained archive in `./backups/` containing your entire wor
 | `SSH_PORT` | `2222` | Host port for SSH connections |
 | `T3_PORT` | `3773` | Host port for T3 Code server |
 | `OPENCODE_PORT` | `4096` | Host port for OpenCode Web UI |
+| `ENABLE_OPENCODE_WEB` | `false` | Auto-start OpenCode Web on boot (set true to enable) |
 | `CODER_PASSWORD` | *required* | Password for user `coder` (SSH access) |
 | `OPENCODE_SERVER_PASSWORD` | *required* | Web password for OpenCode browser UI |
 | `SSH_PUBLIC_KEY` | *optional* | Public SSH key to automatically append to authorized_keys |
