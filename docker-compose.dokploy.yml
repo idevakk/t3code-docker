@@ -73,8 +73,10 @@ services:
       - OPENCODE_HOSTNAME=0.0.0.0
       - OPENCODE_PORT=4096
       - ENABLE_OPENCODE_WEB=${ENABLE_OPENCODE_WEB:-false}
-      - GIT_USER_NAME=${GIT_USER_NAME:-Coder Agent}
-      - GIT_USER_EMAIL=${GIT_USER_EMAIL:-coder@t3code.local}
+      - GIT_USER_NAME=${GIT_USER_NAME:-iDevakk}
+      - GIT_USER_EMAIL=${GIT_USER_EMAIL:-219866223+idevakk@users.noreply.github.com}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - GH_TOKEN=${GH_TOKEN:-}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}

@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Install required system packages:
 # - openssh-server: Remote SSH access for T3 Code Desktop & remote shells
 # - supervisor: Reliable process manager to keep SSH, T3 Code, and OpenCode alive
-# - git, curl, wget, ca-certificates: Required for cloning repos, installing tools
+# - git, curl, wget, ca-certificates, gh (GitHub CLI): Required for cloning repos, PR automation, managing GitHub
 # - build-essential (gcc, g++, make), python3: CRITICAL for node-pty and native addon builds required by T3 Code
 # - procps, net-tools, iproute2: Process monitoring and network diagnostic tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -25,6 +25,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-venv \
     procps \
     sudo \
+    gnupg \
+    && mkdir -p -m 755 /etc/apt/keyrings \
+    && wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+    && chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends gh \
     && rm -rf /var/lib/apt/lists/*
 
 # Install T3 Code CLI, OpenCode AI, and Claude Code globally

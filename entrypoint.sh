@@ -53,9 +53,16 @@ chmod 600 /home/coder/.ssh/authorized_keys
 # 5. Git Configuration for Coding Agents (Safe Directory & Identity)
 # Prevents 'fatal: detected dubious ownership in repository' when mounting host volumes
 su - coder -c "git config --global --add safe.directory '*'"
-su - coder -c "git config --global user.name '${GIT_USER_NAME:-Coder Agent}'"
-su - coder -c "git config --global user.email '${GIT_USER_EMAIL:-coder@t3code.local}'"
+su - coder -c "git config --global user.name '${GIT_USER_NAME:-iDevakk}'"
+su - coder -c "git config --global user.email '${GIT_USER_EMAIL:-219866223+idevakk@users.noreply.github.com}'"
 su - coder -c "git config --global init.defaultBranch main"
+
+# Authenticate GitHub CLI (gh) if token is provided
+GH_AUTH_TOKEN="${GITHUB_TOKEN:-$GH_TOKEN}"
+if [ -n "$GH_AUTH_TOKEN" ]; then
+    echo "$GH_AUTH_TOKEN" | su - coder -c "gh auth login --with-token 2>/dev/null || true"
+    echo "[GitHub] GitHub CLI (gh) authenticated via token."
+fi
 
 # 6. Privilege Escalation Prevention / Sudo Configuration
 if [ "$ENABLE_SUDO" = "true" ]; then
@@ -100,6 +107,8 @@ export OPENCODE_PORT="${OPENCODE_PORT:-4096}"
 [ -n "$ANTHROPIC_API_KEY" ] && export ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY"
 [ -n "$OPENAI_API_KEY" ] && export OPENAI_API_KEY="$OPENAI_API_KEY"
 [ -n "$GEMINI_API_KEY" ] && export GEMINI_API_KEY="$GEMINI_API_KEY"
+[ -n "$GITHUB_TOKEN" ] && export GITHUB_TOKEN="$GITHUB_TOKEN"
+[ -n "$GH_TOKEN" ] && export GH_TOKEN="$GH_TOKEN"
 # END T3_DOCKER_ENV
 EOF
 # 10. OpenCode Web Auto-Start Control
