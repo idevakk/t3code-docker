@@ -1,0 +1,116 @@
+# ==============================================================================
+# Dokploy-Optimized Docker Compose Configuration
+# Designed specifically for deployment on Dokploy PaaS (with Traefik & SSL)
+# ==============================================================================
+services:
+  t3code-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: t3code-server:latest
+    container_name: t3code-server
+    restart: unless-stopped
+
+    # ============================================================================
+    # Security Hardening & Agent Isolation
+    # ============================================================================
+    security_opt:
+      - no-new-privileges:true
+
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETUID
+      - SETGID
+      - SYS_CHROOT
+      - NET_BIND_SERVICE
+      - AUDIT_WRITE
+      - KILL
+
+    # ============================================================================
+    # Resource Constraints
+    # ============================================================================
+    deploy:
+      resources:
+        limits:
+          cpus: '${CPU_LIMIT:-4.0}'
+          memory: '${MEMORY_LIMIT:-8G}'
+          pids: ${PIDS_LIMIT:-500}
+        reservations:
+          cpus: '0.5'
+          memory: '${MEMORY_RESERVATION:-2G}'
+
+    pids_limit: ${PIDS_LIMIT:-500}
+
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+    # ============================================================================
+    # Direct Port Forwarding
+    # Port 2222 is directly published for T3 Code Desktop SSH access
+    # Web ports (3773, 4096) can also be accessed directly or via Traefik domains
+    # ============================================================================
+    ports:
+      - "${SSH_PORT:-2222}:22"
+      - "${T3_PORT:-3773}:3773"
+      - "${OPENCODE_PORT:-4096}:4096"
+
+    # ============================================================================
+    # Environment Configuration (Configured in Dokploy UI 'Environment' tab)
+    # ============================================================================
+    environment:
+      - CODER_PASSWORD=${CODER_PASSWORD:-coder_secure_pass_2026}
+      - OPENCODE_SERVER_PASSWORD=${OPENCODE_SERVER_PASSWORD:-opencode_secure_web_pass_2026}
+      - SSH_PUBLIC_KEY=${SSH_PUBLIC_KEY:-}
+      - ENABLE_SUDO=${ENABLE_SUDO:-false}
+      - T3CODE_HOST=0.0.0.0
+      - T3CODE_PORT=3773
+      - OPENCODE_HOSTNAME=0.0.0.0
+      - OPENCODE_PORT=4096
+      - GIT_USER_NAME=${GIT_USER_NAME:-Coder Agent}
+      - GIT_USER_EMAIL=${GIT_USER_EMAIL:-coder@t3code.local}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+
+    # ============================================================================
+    # Dokploy Persistent Storage (Named Docker Volumes)
+    # In Dokploy, named volumes live in /var/lib/docker/volumes/ and are
+    # GUARANTEED to survive git pulls, image rebuilds, and Dokploy redeployments.
+    # ============================================================================
+    volumes:
+      - t3code_dokploy_workspace:/workspace
+      - t3code_dokploy_home:/home/coder
+      - t3code_dokploy_ssh_keys:/etc/ssh/ssh_host_keys
+
+    tmpfs:
+      - /tmp:size=1G,exec
+      - /run:size=100M
+
+    # Connect to Dokploy's Traefik network for automatic HTTPS routing
+    networks:
+      - default
+      - dokploy-network
+
+# ==============================================================================
+# Persistent Named Volumes (Safe from Dokploy Git rebuilds)
+# ==============================================================================
+volumes:
+  t3code_dokploy_workspace:
+    name: t3code_dokploy_workspace
+  t3code_dokploy_home:
+    name: t3code_dokploy_home
+  t3code_dokploy_ssh_keys:
+    name: t3code_dokploy_ssh_keys
+
+# ==============================================================================
+# External Dokploy Traefik Network
+# ==============================================================================
+networks:
+  dokploy-network:
+    external: true

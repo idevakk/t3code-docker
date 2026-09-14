@@ -1,0 +1,98 @@
+services:
+  t3code-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: t3code-server:latest
+    container_name: t3code-server
+    restart: unless-stopped
+
+    # ============================================================================
+    # Security Hardening & Isolation
+    # ============================================================================
+    # 1. Block privilege escalation: prevents setuid/setgid from granting extra rights
+    #    (Note: If you enable sudo inside the container, you must comment this out)
+    security_opt:
+      - no-new-privileges:true
+
+    # 2. Drop all Linux capabilities, then add back only the strictly minimal
+    #    capabilities needed by sshd and the entrypoint script.
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN            # Required to adjust ownership of workspace & home
+      - DAC_OVERRIDE     # Required during container initialization
+      - FOWNER           # File permission management
+      - SETUID           # Required by sshd to switch to 'coder' upon login
+      - SETGID           # Required by sshd to switch to 'coder' group
+      - SYS_CHROOT       # Required by sshd privilege separation (/run/sshd)
+      - NET_BIND_SERVICE # Required to bind to standard SSH port 22
+      - AUDIT_WRITE      # Required by PAM session tracking
+      - KILL             # Required to terminate child processes cleanly on logout
+
+    # 3. CRITICAL ANTI-ESCAPE GUARANTEE:
+    #    The host docker socket (/var/run/docker.sock) is NEVER mounted.
+    #    Coding agents cannot access Docker daemon or spawn host containers.
+
+    # ============================================================================
+    # Resource Limitations (Prevent host freeze, OOM, and fork bombs)
+    # ============================================================================
+    deploy:
+      resources:
+        limits:
+          cpus: '${CPU_LIMIT:-4.0}'
+          memory: '${MEMORY_LIMIT:-8G}'
+          pids: ${PIDS_LIMIT:-500}
+        reservations:
+          cpus: '0.5'
+          memory: '${MEMORY_RESERVATION:-2G}'
+
+    pids_limit: ${PIDS_LIMIT:-500}
+
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+    # ============================================================================
+    # Port Forwarding
+    # ============================================================================
+    ports:
+      # SSH Server (for T3 Code Desktop remote connection: coder@<ip>:2222)
+      - "${SSH_PORT:-2222}:22"
+      # T3 Code Server (for direct browser pairing and app.t3.codes)
+      - "${T3_PORT:-3773}:3773"
+      # OpenCode Web UI (browser interface for OpenCode AI)
+      - "${OPENCODE_PORT:-4096}:4096"
+
+    # ============================================================================
+    # Environment Variables
+    # ============================================================================
+    environment:
+      - CODER_PASSWORD=${CODER_PASSWORD:-coder_secure_pass_2026}
+      - OPENCODE_SERVER_PASSWORD=${OPENCODE_SERVER_PASSWORD:-opencode_secure_web_pass_2026}
+      - SSH_PUBLIC_KEY=${SSH_PUBLIC_KEY:-}
+      - ENABLE_SUDO=${ENABLE_SUDO:-false}
+      - T3CODE_HOST=${T3CODE_HOST:-0.0.0.0}
+      - T3CODE_PORT=${T3_PORT:-3773}
+      - OPENCODE_HOSTNAME=${OPENCODE_HOSTNAME:-0.0.0.0}
+      - OPENCODE_PORT=${OPENCODE_PORT:-4096}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+
+    # ============================================================================
+    # Persistent Storage (Survives container rebuilds, updates, and redeployments)
+    # ============================================================================
+    volumes:
+      # All code projects, git repos, and T3 worktrees reside here
+      - ${WORKSPACE_PATH:-./workspace}:/workspace
+      # Preserves T3 Code SQLite database (~/.t3/state.sqlite), threads, OpenCode settings, and SSH keys
+      - ${CODER_HOME_PATH:-./data/coder_home}:/home/coder
+      # Preserves server SSH host identification keys
+      - ${SSH_KEYS_PATH:-./data/ssh_host_keys}:/etc/ssh/ssh_host_keys
+
+    # Fast temporary memory
+    tmpfs:
+      - /tmp:size=1G,exec
+      - /run:size=100M

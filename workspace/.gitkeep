@@ -1,0 +1,3 @@
+# This file preserves the workspace directory structure in git.
+# Any projects or code repositories you clone or create inside workspace/
+# will automatically persist across Docker deployments and updates.

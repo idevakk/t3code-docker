@@ -1,0 +1,2 @@
+# This file preserves the data directory structure in git.
+# The T3 Code database, threads, and OpenCode state are stored in data/coder_home/

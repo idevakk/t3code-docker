@@ -1,0 +1,11 @@
+.env
+*.log
+.DS_Store
+Thumbs.db
+
+# Exclude local database, keys, and private workspace projects
+data/*
+!data/.gitkeep
+workspace/*
+!workspace/.gitkeep
+
