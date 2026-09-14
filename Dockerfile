@@ -36,10 +36,16 @@ RUN npm install -g --no-audit --no-fund \
     opencode-ai@latest \
     @anthropic-ai/claude-code@latest
 
-# Create non-root user 'coder' (UID 1000, GID 1000)
+# Setup non-root user 'coder' (UID 1000, GID 1000)
 # Running all AI coding agents as non-root prevents host and system privilege escalation
-RUN groupadd -g 1000 coder && \
-    useradd -u 1000 -g coder -m -s /bin/bash coder
+# Official node base images already have a 'node' user with UID 1000; rename it to 'coder'
+RUN if id -u node >/dev/null 2>&1; then \
+        usermod -l coder -d /home/coder -m node && \
+        groupmod -n coder node; \
+    else \
+        groupadd -g 1000 coder && \
+        useradd -u 1000 -g coder -m -s /bin/bash coder; \
+    fi
 
 # Prepare directory structure
 RUN mkdir -p /workspace /run/sshd /var/log/supervisor /etc/ssh/ssh_host_keys && \
