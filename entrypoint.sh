@@ -132,15 +132,22 @@ export_var "GH_TOKEN" "$GH_TOKEN"
 
 chmod 644 "$PROFILE_D"
 
-# Ensure non-login interactive shells (like docker exec bash) also load profile.d
+# Prepend to the top of .bashrc so all subshells (interactive, non-interactive, scripts) get variables
 for rc_file in "$BASHRC" "$ROOT_BASHRC"; do
     sed -i '/# BEGIN T3_DOCKER_ENV/,/# END T3_DOCKER_ENV/d' "$rc_file" 2>/dev/null || true
-    cat << 'EOF' >> "$rc_file"
+    TMP_RC="$(mktemp)"
+    cat << 'EOF' > "$TMP_RC"
 # BEGIN T3_DOCKER_ENV
 [ -f /etc/profile.d/t3code_env.sh ] && . /etc/profile.d/t3code_env.sh
 # END T3_DOCKER_ENV
 EOF
+    cat "$rc_file" >> "$TMP_RC" 2>/dev/null || true
+    mv "$TMP_RC" "$rc_file"
 done
+
+# Ensure correct file permissions
+chown -R coder:coder /home/coder
+chmod 644 /home/coder/.bashrc 2>/dev/null || true
 # 10. OpenCode Web Auto-Start Control
 SUPERVISOR_CONF="/etc/supervisor/conf.d/supervisord.conf"
 if [ "$ENABLE_OPENCODE_WEB" = "true" ] || [ "$ENABLE_OPENCODE_WEB" = "1" ] || [ "$ENABLE_OPENCODE_WEB" = "yes" ]; then
