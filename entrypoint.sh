@@ -64,6 +64,32 @@ if [ -n "$GH_AUTH_TOKEN" ]; then
     echo "[GitHub] GitHub CLI (gh) authenticated via token."
 fi
 
+# 5b. Pre-configure Claude Code to bypass interactive onboarding / login prompts
+python3 -c "
+import json, os
+claude_file = '/home/coder/.claude.json'
+data = {}
+if os.path.exists(claude_file):
+    try:
+        with open(claude_file, 'r') as f:
+            data = json.load(f)
+    except Exception:
+        data = {}
+
+data['hasCompletedOnboarding'] = True
+data['autoUpdaterStatus'] = 'disabled'
+
+anthropic_model = os.environ.get('ANTHROPIC_MODEL', '').strip()
+if anthropic_model:
+    data['customModel'] = anthropic_model
+
+with open(claude_file, 'w') as f:
+    json.dump(data, f, indent=2)
+" 2>/dev/null || true
+chown coder:coder /home/coder/.claude.json 2>/dev/null || true
+chmod 600 /home/coder/.claude.json 2>/dev/null || true
+echo "[Claude Code] Auto-login onboarding pre-configured."
+
 # 6. Privilege Escalation / Sudo Configuration
 if [ "$ENABLE_SUDO" = "true" ] || [ "$ENABLE_SUDO" = "1" ] || [ "$ENABLE_SUDO" = "yes" ]; then
     echo "[Security Notice] Passwordless sudo ENABLED for 'coder' (allows agents & tools to install packages dynamically)."
