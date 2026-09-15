@@ -3,6 +3,27 @@ set -e
 
 echo "=== Initializing T3 Code & OpenCode Container ==="
 
+# 0. Load optional persistent .env file from /home/coder/.env or /workspace/.env if present
+for env_candidate in "/home/coder/.env" "/workspace/.env"; do
+    if [ -f "$env_candidate" ]; then
+        echo "[Env] Reading variables from persistent $env_candidate..."
+        while IFS='=' read -r key val || [ -n "$key" ]; do
+            case "$key" in
+                \#*|"") continue ;;
+            esac
+            # Strip potential quotes and Windows CR
+            key=$(echo "$key" | tr -d '\r')
+            val=$(echo "$val" | tr -d '\r' | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//")
+            if [ -n "$key" ] && [ -n "$val" ]; then
+                eval "current_val=\${$key}"
+                if [ -z "$current_val" ]; then
+                    export "$key=$val"
+                fi
+            fi
+        done < "$env_candidate"
+    fi
+done
+
 # 1. SSH Host Keys Persistence
 HOST_KEY_DIR="/etc/ssh/ssh_host_keys"
 mkdir -p "$HOST_KEY_DIR"
