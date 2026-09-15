@@ -90,27 +90,57 @@ fi
 chown -R coder:coder /workspace
 chown -R coder:coder /home/coder
 
-# 9. Ensure Environment Variables are Accessible in Interactive SSH Sessions
+# 9. Ensure Environment Variables are Accessible Across All Shells (SSH, Root, Coder)
 BASHRC="/home/coder/.bashrc"
-touch "$BASHRC"
+ROOT_BASHRC="/root/.bashrc"
+PROFILE_D="/etc/profile.d/t3code_env.sh"
+ETC_ENV="/etc/environment"
 
-# Clean previous auto-generated blocks
-sed -i '/# BEGIN T3_DOCKER_ENV/,/# END T3_DOCKER_ENV/d' "$BASHRC"
+touch "$BASHRC" "$ROOT_BASHRC" "$PROFILE_D" "$ETC_ENV"
 
-cat << 'EOF' >> "$BASHRC"
-# BEGIN T3_DOCKER_ENV
+# Generate system-wide profile export (sourced by all login shells: ssh, bash -l, su)
+cat << 'EOF_PROFILE_HEADER' > "$PROFILE_D"
+# System-wide Environment Variables for T3 Code, OpenCode & Claude Code
 export PATH="/home/coder/.local/bin:/usr/local/bin:/usr/bin:/bin:$PATH"
-export T3CODE_HOST="${T3CODE_HOST:-0.0.0.0}"
-export T3CODE_PORT="${T3CODE_PORT:-3773}"
-export OPENCODE_HOSTNAME="${OPENCODE_HOSTNAME:-0.0.0.0}"
-export OPENCODE_PORT="${OPENCODE_PORT:-4096}"
-[ -n "$ANTHROPIC_API_KEY" ] && export ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY"
-[ -n "$OPENAI_API_KEY" ] && export OPENAI_API_KEY="$OPENAI_API_KEY"
-[ -n "$GEMINI_API_KEY" ] && export GEMINI_API_KEY="$GEMINI_API_KEY"
-[ -n "$GITHUB_TOKEN" ] && export GITHUB_TOKEN="$GITHUB_TOKEN"
-[ -n "$GH_TOKEN" ] && export GH_TOKEN="$GH_TOKEN"
+EOF_PROFILE_HEADER
+
+# Safely append runtime values from entrypoint into profile.d and /etc/environment
+export_var() {
+    local var_name="$1"
+    local var_val="$2"
+    if [ -n "$var_val" ]; then
+        local safe_val
+        safe_val=$(printf '%s' "$var_val" | sed 's/\\/\\\\/g; s/"/\\"/g')
+        echo "export ${var_name}=\"${safe_val}\"" >> "$PROFILE_D"
+        sed -i "/^${var_name}=/d" "$ETC_ENV" 2>/dev/null || true
+        echo "${var_name}=\"${safe_val}\"" >> "$ETC_ENV"
+    fi
+}
+
+export_var "T3CODE_HOST" "${T3CODE_HOST:-0.0.0.0}"
+export_var "T3CODE_PORT" "${T3CODE_PORT:-3773}"
+export_var "OPENCODE_HOSTNAME" "${OPENCODE_HOSTNAME:-0.0.0.0}"
+export_var "OPENCODE_PORT" "${OPENCODE_PORT:-4096}"
+export_var "ANTHROPIC_API_KEY" "$ANTHROPIC_API_KEY"
+export_var "ANTHROPIC_BASE_URL" "$ANTHROPIC_BASE_URL"
+export_var "ANTHROPIC_MODEL" "$ANTHROPIC_MODEL"
+export_var "OPENAI_API_KEY" "$OPENAI_API_KEY"
+export_var "OPENAI_BASE_URL" "$OPENAI_BASE_URL"
+export_var "GEMINI_API_KEY" "$GEMINI_API_KEY"
+export_var "GITHUB_TOKEN" "$GITHUB_TOKEN"
+export_var "GH_TOKEN" "$GH_TOKEN"
+
+chmod 644 "$PROFILE_D"
+
+# Ensure non-login interactive shells (like docker exec bash) also load profile.d
+for rc_file in "$BASHRC" "$ROOT_BASHRC"; do
+    sed -i '/# BEGIN T3_DOCKER_ENV/,/# END T3_DOCKER_ENV/d' "$rc_file" 2>/dev/null || true
+    cat << 'EOF' >> "$rc_file"
+# BEGIN T3_DOCKER_ENV
+[ -f /etc/profile.d/t3code_env.sh ] && . /etc/profile.d/t3code_env.sh
 # END T3_DOCKER_ENV
 EOF
+done
 # 10. OpenCode Web Auto-Start Control
 SUPERVISOR_CONF="/etc/supervisor/conf.d/supervisord.conf"
 if [ "$ENABLE_OPENCODE_WEB" = "true" ] || [ "$ENABLE_OPENCODE_WEB" = "1" ] || [ "$ENABLE_OPENCODE_WEB" = "yes" ]; then
