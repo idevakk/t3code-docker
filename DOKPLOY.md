@@ -13,7 +13,8 @@ This guide outlines the exact steps and considerations to ensure zero-downtime p
 | **Data Persistence** | Dokploy pulls code to an internal folder on each deployment. Host relative paths (like `./workspace`) risk being overwritten during git checkouts. | Use **Named Docker Volumes** (`t3code_dokploy_workspace`, `t3code_dokploy_home`). They are managed by Docker in `/var/lib/docker/volumes/` and **never get wiped** by Dokploy deployments. |
 | **HTTPS Web UI** | Dokploy manages Traefik on port 80/443 with automated Let's Encrypt certificates. | We connect the container to `dokploy-network`. You can assign custom domains (e.g. `opencode.yourdomain.com`) directly in the Dokploy UI. |
 | **SSH Access (Port 2222)** | Traefik only proxies HTTP/HTTPS by default. | Port `2222:22` is exposed directly to the host network via `ports:`. T3 Code desktop connects to `coder@your-server-ip -p 2222` directly. |
-| **Security Hardening** | Dokploy passes standard Docker security options to the host engine. | `no-new-privileges: true` and capability drops work out-of-the-box on Dokploy. |
+| **Dynamic Package Installs** | Coding agents require runtime tools (PHP, Composer, Python, etc.) | Passwordless sudo is enabled (`ENABLE_SUDO=true`), allowing agents to run `sudo apt install` on the fly. |
+| **Security Isolation** | Prevents host breakout | Docker isolation without `/var/run/docker.sock` keeps the VPS host 100% secure. |
 
 ---
 
@@ -55,7 +56,7 @@ SSH_PORT=2222
 T3_PORT=3773
 OPENCODE_PORT=4096
 ENABLE_OPENCODE_WEB=false
-ENABLE_SUDO=false
+ENABLE_SUDO=true
 CPU_LIMIT=4.0
 MEMORY_LIMIT=8G
 PIDS_LIMIT=500

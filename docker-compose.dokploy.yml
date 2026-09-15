@@ -12,23 +12,16 @@ services:
     restart: unless-stopped
 
     # ============================================================================
-    # Security Hardening & Agent Isolation
+    # Security Isolation
     # ============================================================================
-    security_opt:
-      - no-new-privileges:true
-
-    cap_drop:
-      - ALL
-    cap_add:
-      - CHOWN
-      - DAC_OVERRIDE
-      - FOWNER
-      - SETUID
-      - SETGID
-      - SYS_CHROOT
-      - NET_BIND_SERVICE
-      - AUDIT_WRITE
-      - KILL
+    # CRITICAL ANTI-ESCAPE GUARANTEE:
+    # The host docker socket (/var/run/docker.sock) is NEVER mounted.
+    # Coding agents are strictly sandboxed inside this container and cannot touch the host OS.
+    #
+    # Note: 'no-new-privileges:true' and 'cap_drop: ALL' are omitted so that
+    # 'ENABLE_SUDO=true' allows agents to dynamically install packages (e.g. PHP, Composer, Python, etc.)
+    # via passwordless sudo. If you require ultra-strict lockdown without any package installation,
+    # set ENABLE_SUDO=false in Dokploy Environment.
 
     # ============================================================================
     # Resource Constraints

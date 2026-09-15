@@ -64,10 +64,10 @@ if [ -n "$GH_AUTH_TOKEN" ]; then
     echo "[GitHub] GitHub CLI (gh) authenticated via token."
 fi
 
-# 6. Privilege Escalation Prevention / Sudo Configuration
-if [ "$ENABLE_SUDO" = "true" ]; then
-    echo "[Security Notice] Sudo enabled for 'coder' user (password required)."
-    echo "coder ALL=(ALL:ALL) ALL" > /etc/sudoers.d/coder
+# 6. Privilege Escalation / Sudo Configuration
+if [ "$ENABLE_SUDO" = "true" ] || [ "$ENABLE_SUDO" = "1" ] || [ "$ENABLE_SUDO" = "yes" ]; then
+    echo "[Security Notice] Passwordless sudo ENABLED for 'coder' (allows agents & tools to install packages dynamically)."
+    echo "coder ALL=(ALL:ALL) NOPASSWD:ALL" > /etc/sudoers.d/coder
     chmod 0440 /etc/sudoers.d/coder
 else
     echo "[Security Hardening] Sudo is DISABLED for 'coder'. Coding agents cannot escalate to root."

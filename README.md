@@ -41,10 +41,9 @@ Autonomous coding agents execute shell commands, install packages, and write fil
 
 | Security Feature | Mechanism | Threat Prevented |
 | :--- | :--- | :--- |
-| **Non-Root Execution** | Runs as user `coder` (UID 1000) | Root compromises & host modifications |
+| **Non-Root Execution** | Runs as user `coder` (UID 1000) | Default unprivileged process execution |
 | **No Docker Socket Mount** | `/var/run/docker.sock` is **strictly excluded** | Container breakout to host root |
-| **Privilege Escalation Block** | `security_opt: [no-new-privileges:true]` | Exploiting setuid binaries to gain root |
-| **Capability Dropping** | `cap_drop: [ALL]`, bounded minimal adds | Kernel exploits, raw network forging |
+| **On-Demand Package Install** | Passwordless sudo (`ENABLE_SUDO=true`) | Enables agents to install PHP, Composer, Python, etc. on the fly |
 | **Fork Bomb Protection** | `pids_limit: 500` | Process starvation & system freeze |
 | **Resource Caps** | Configurable CPU & RAM limits (`cpus: 4.0`, `memory: 8G`) | Host Out-Of-Memory (OOM) crashes |
 | **Root SSH Disabled** | `PermitRootLogin no`, `AllowUsers coder` | Brute-force root SSH attacks |
@@ -264,7 +263,7 @@ This creates a self-contained archive in `./backups/` containing your entire wor
 | `CODER_PASSWORD` | *required* | Password for user `coder` (SSH access) |
 | `OPENCODE_SERVER_PASSWORD` | *required* | Web password for OpenCode browser UI |
 | `SSH_PUBLIC_KEY` | *optional* | Public SSH key to automatically append to authorized_keys |
-| `ENABLE_SUDO` | `false` | Enable sudo for `coder` (keep `false` for maximum security) |
+| `ENABLE_SUDO` | `true` | Enable passwordless sudo for `coder` (allows coding agents to install packages dynamically) |
 | `CPU_LIMIT` | `4.0` | Maximum CPU cores allowed |
 | `MEMORY_LIMIT` | `8G` | Maximum RAM allowed before throttled |
 | `PIDS_LIMIT` | `500` | Process limit to prevent fork bombs |
