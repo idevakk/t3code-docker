@@ -34,13 +34,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get install -y --no-install-recommends gh \
     && rm -rf /var/lib/apt/lists/*
 
-# Install T3 Code CLI, OpenCode AI, and Claude Code globally
+# Install T3 Code CLI, OpenCode v2 CLI, and Claude Code globally
 # - t3: Official T3 Code server & harness CLI (pingdotgg/t3code)
-# - opencode-ai: Official SST/Anomaly OpenCode agent with web server support
+# - @opencode/cli: Official OpenCode v2 AI agent CLI & Web server (@opencode/cli@latest)
 # - @anthropic-ai/claude-code: Official Anthropic Claude Code CLI
 RUN npm install -g --no-audit --no-fund \
     t3@latest \
-    opencode-ai@latest \
+    @opencode/cli@latest \
     @anthropic-ai/claude-code@latest
 
 # Setup non-root user 'coder' (UID 1000, GID 1000)

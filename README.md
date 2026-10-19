@@ -131,11 +131,11 @@ If your device can directly reach port `3773`:
 
 ---
 
-### Option D: OpenCode Web UI (On-Demand / Browser Access)
+### Option D: OpenCode v2 Web UI & Pairing (Browser Access)
 
 By default, **OpenCode Web is turned OFF** to save memory, reduce idle CPU usage, and keep port 4096 closed until needed.
 
-#### Launching OpenCode Web On-Demand:
+#### Launching OpenCode v2 Web On-Demand:
 You can start or stop OpenCode Web at any time without restarting the container:
 
 ```bash
@@ -161,6 +161,17 @@ ENABLE_OPENCODE_WEB=true
    ```
 2. Enter the password configured in `OPENCODE_SERVER_PASSWORD` (in `.env`).
 3. You can now configure your AI providers (Anthropic Claude, OpenAI, Gemini, Ollama, DeepSeek, etc.), browse `/workspace`, and execute interactive coding tasks directly in the browser!
+
+#### Pairing with OpenCode v2 Client / Remote App:
+OpenCode v2 supports secure pairing via one-time tokens and QR codes:
+```bash
+./pair-opencode.sh        # Linux / macOS
+.\pair-opencode.ps1       # Windows PowerShell
+```
+You can also run OpenCode directly in terminal mode inside the container:
+```bash
+docker compose exec -it -u coder t3code-server opencode
+```
 
 ---
 
