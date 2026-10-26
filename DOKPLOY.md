@@ -104,7 +104,7 @@ sudo ufw allow 2222/tcp
 Click **Deploy** in Dokploy!
 
 Dokploy will:
-1. Build the Docker image (installing Node 22, T3 Code, OpenCode, Supervisor, and OpenSSH).
+1. Build the Docker image (installing Node 22, T3 Code, OpenCode, Claude Code, Codex CLI, Supervisor, and OpenSSH).
 2. Create the persistent Docker volumes.
 3. Attach the container to `dokploy-network`.
 4. Launch the services under Supervisor.
@@ -134,10 +134,34 @@ docker exec -it -u coder t3code-server t3 connect
 ```
 Open the printed link to sign in with your T3 account. Your Dokploy container is now permanently linked to your T3 Code cloud profile!
 
+### 4. Signing in to Codex CLI
+
+From your VPS terminal, run Codex as `coder`:
+
+```bash
+docker exec -it -u coder t3code-server codex login --device-auth
+docker exec -it -u coder t3code-server codex login status
+docker exec -it -u coder t3code-server codex
+```
+
+In Dokploy's container Terminal / Exec tab, use
+`su - coder -c 'codex login --device-auth'` if the terminal starts as root.
+Complete sign-in with the printed URL and code. Enable device authentication in
+your ChatGPT account or workspace if required. See the
+[official authentication guide](https://developers.openai.com/codex/auth).
+
+Credentials are stored in `/home/coder/.codex/auth.json` inside the existing
+`t3code_dokploy_home` volume. Startup seeds file-based credential storage only
+when `config.toml` is absent and preserves saved credentials and configuration.
+Keep `cli_auth_credentials_store = "file"` if you edit the configuration, and
+always run Codex as `coder`.
+
 ---
 
 ## 🔄 Verified Persistence Guarantee
 When you click **Redeploy** in Dokploy or push new code to your Git repo:
 - Dokploy recreates the container.
 - Docker re-attaches the existing `t3code_dokploy_workspace` and `t3code_dokploy_home` volumes.
-- All repositories, Git branches, T3 SQLite database (`state.sqlite`), OpenCode configurations, and SSH keys remain **100% intact**.
+- All repositories, Git branches, T3 SQLite database (`state.sqlite`), Claude/OpenCode credentials and configurations, Codex login/configuration/sessions (`/home/coder/.codex`), and SSH keys remain intact.
+- Keep the existing named volumes when redeploying. Deleting `t3code_dokploy_home` or running `docker compose down -v` removes saved logins and other home data.
+- After redeploying, run `docker exec -it -u coder t3code-server codex login status` to check the saved login. Account-side expiration or revocation can still require signing in again.

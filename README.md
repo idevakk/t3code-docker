@@ -19,7 +19,7 @@ flowchart TD
             SSHD["OpenSSH Server<br/>Port 2222 to 22"]
             T3["T3 Code Server<br/>Port 3773"]
             OC["OpenCode Web Server<br/>Port 4096"]
-            Agents["Coding Agents<br/>OpenCode, Claude Code, etc."]
+            Agents["Coding Agents<br/>OpenCode, Claude Code, Codex CLI"]
             WS["Persistent Workspace<br/>/workspace"]
         end
     end
@@ -173,6 +173,28 @@ You can also run OpenCode directly in terminal mode inside the container:
 docker compose exec -it -u coder t3code-server opencode
 ```
 
+### Codex CLI
+
+Codex CLI is installed alongside Claude Code and OpenCode. Sign in as `coder`
+using device authentication for this headless container:
+
+```bash
+docker compose exec -it -u coder t3code-server codex login --device-auth
+docker compose exec -it -u coder t3code-server codex login status
+docker compose exec -it -u coder t3code-server codex
+```
+
+Follow the printed URL and code to complete sign-in. Device authentication must
+be enabled for your ChatGPT account or workspace. See the
+[official authentication guide](https://developers.openai.com/codex/auth).
+
+Codex stores credentials in `/home/coder/.codex/auth.json` using file storage.
+The entire `.codex` directory, including configuration and sessions, lives in the
+existing persistent home mount. Startup creates the default `config.toml` only
+when absent, preserving existing configuration and credentials on redeploy.
+If you customize credential storage, keep `cli_auth_credentials_store = "file"`
+to retain logins in the home volume. Always run Codex as `coder` so it uses this home.
+
 ---
 
 ## 🛠 Management & Operations
@@ -225,6 +247,7 @@ t3code-docker/
 │   ├── coder_home/        <-- Mounted to /home/coder inside container
 │   │   ├── .t3/           <-- T3 Code SQLite DB (state.sqlite), userdata, auth tokens
 │   │   ├── .config/       <-- OpenCode configurations, provider models, preferences
+│   │   ├── .codex/        <-- Codex login (auth.json), config.toml, and sessions
 │   │   ├── .ssh/          <-- Authorized keys and known hosts
 │   │   └── .bashrc        <-- Shell environment and persistent variables
 │   └── ssh_host_keys/     <-- Persists server SSH host keys
@@ -236,6 +259,7 @@ t3code-docker/
 2. **T3 Code Threads & Workflows**: T3 Code's internal SQLite database (`state.sqlite`), thread history, pull request reviews, and environment pairings are preserved in `./data/coder_home/.t3`.
 3. **OpenCode Configuration & Sessions**: All saved API keys, model provider settings, and interactive task histories are preserved in `./data/coder_home/.config/opencode`.
 4. **Git Safe Ownership**: The container automatically applies `git config --global --add safe.directory '*'` on startup, preventing `detected dubious ownership` errors when accessing host repos.
+5. **Codex Login & Sessions**: `/home/coder/.codex` persists through the home mount, including `auth.json`, `config.toml`, and session history.
 
 ### 💾 Creating Instant Backups
 

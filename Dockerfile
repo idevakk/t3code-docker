@@ -34,14 +34,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get install -y --no-install-recommends gh \
     && rm -rf /var/lib/apt/lists/*
 
-# Install T3 Code CLI, OpenCode v2 CLI, and Claude Code globally
+# Install T3 Code CLI, OpenCode v2 CLI, Claude Code, and Codex CLI globally
 # - t3: Official T3 Code server & harness CLI (pingdotgg/t3code)
 # - @opencode/cli: Official OpenCode v2 AI agent CLI & Web server (@opencode/cli@latest)
 # - @anthropic-ai/claude-code: Official Anthropic Claude Code CLI
+# - @openai/codex: Official OpenAI Codex CLI
 RUN npm install -g --no-audit --no-fund \
     t3@latest \
     @opencode/cli@latest \
-    @anthropic-ai/claude-code@latest
+    @anthropic-ai/claude-code@latest \
+    @openai/codex@latest
 
 # Setup non-root user 'coder' (UID 1000, GID 1000)
 # Running all AI coding agents as non-root prevents host and system privilege escalation

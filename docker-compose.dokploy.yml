@@ -84,6 +84,7 @@ services:
     # ============================================================================
     volumes:
       - t3code_dokploy_workspace:/workspace
+      # Includes Claude, OpenCode, and Codex credentials, configuration, and sessions
       - t3code_dokploy_home:/home/coder
       - t3code_dokploy_ssh_keys:/etc/ssh/ssh_host_keys
 

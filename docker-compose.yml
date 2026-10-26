@@ -83,7 +83,7 @@ services:
     volumes:
       # All code projects, git repos, and T3 worktrees reside here
       - ${WORKSPACE_PATH:-./workspace}:/workspace
-      # Preserves T3 Code SQLite database (~/.t3/state.sqlite), threads, OpenCode settings, and SSH keys
+      # Preserves T3 state, Claude/OpenCode/Codex logins and settings, and SSH keys
       - ${CODER_HOME_PATH:-./data/coder_home}:/home/coder
       # Preserves server SSH host identification keys
       - ${SSH_KEYS_PATH:-./data/ssh_host_keys}:/etc/ssh/ssh_host_keys

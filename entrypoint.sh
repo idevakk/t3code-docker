@@ -52,6 +52,14 @@ fi
 mkdir -p /home/coder/.t3/userdata
 mkdir -p /home/coder/.config/opencode
 mkdir -p /home/coder/.local/share/opencode
+# Codex uses the persistent coder home for credentials, configuration, and sessions.
+# Use file storage because a container has no persistent OS credential keyring.
+mkdir -p /home/coder/.codex
+chmod 700 /home/coder/.codex
+if [ ! -f /home/coder/.codex/config.toml ]; then
+    printf '%s\n' 'cli_auth_credentials_store = "file"' > /home/coder/.codex/config.toml
+fi
+chmod 600 /home/coder/.codex/config.toml
 mkdir -p /home/coder/.ssh
 touch /home/coder/.ssh/authorized_keys
 
